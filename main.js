@@ -244,6 +244,23 @@ function drawPlayers(ctx) {
     ctx.fill();
 }
 
+function drawAnchorsDistance(ctx) {
+    const error = 10;
+    ctx.strokeStyle = 'blue';
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    players[0].distanceToAnchors().forEach((dist, i) => {
+        const noise = (2*gaussianRand() - 1) * error;
+        const rad = dist + noise;
+        const [x, y] = anchors[i];
+        const dang = 0.5 * Math.PI * i;
+        const k = i % 3 == 0 ? 1 : -1;
+        ctx.moveTo(x + rad * k, y);
+        ctx.arc(x, y, rad, dang, dang + k*Math.PI*0.5, k != 1);
+    });
+    ctx.stroke();
+}
+
 function render() {
     const canvas = document.getElementById('canvas');
     const width = canvas.clientWidth;
@@ -289,6 +306,8 @@ function render() {
     drawField(ctx);
     drawAnchors(ctx);
     drawPlayers(ctx);
+
+    drawAnchorsDistance(ctx);
 
     document.getElementById('debugData').textContent = Object.keys(debugVars).map(key => `${key}: ${debugVars[key]}`).join('\n');
 }
