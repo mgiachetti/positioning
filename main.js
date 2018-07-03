@@ -371,7 +371,7 @@ function calculatePosition() {
 
 const fps = 30;
 const frameTime = 1.0/fps;
-const speed = 1;
+const speed = 0.2;
 function loop() {
     const elapsed = frameTime;
     update(elapsed);
@@ -400,6 +400,7 @@ function calculateErrors() {
             }
             debugVars[`Dist anchor ${i} filtered error acum`] += debugVars[`Dist anchor ${i} filtered error`] || 0 ;
             debugVars[`Dist anchor ${i} error acum`] += debugVars[`Dist anchor ${i} error`] || 0;
+            debugVars[`Dist anchor ${i} error reduced`] =  `${100*(1 - debugVars[`Dist anchor ${i} filtered error acum`] / debugVars[`Dist anchor ${i} error acum`]) | 0}%`;
             // debugVars[`Dist anchor ${i} filtered error`] = Math.abs(filteredDistance - realDistance);
         }
     });
@@ -423,8 +424,8 @@ function initFilters() {
         ]);
 
         filter.Q = new Matrix([
-            [10000, 0.0],
-            [0, 1000],
+            [1, 0.0],
+            [0, 1],
         ]);
         
         anchorKalmans[i] = filter;
