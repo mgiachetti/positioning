@@ -409,7 +409,7 @@ function initFilters() {
     for (let i = 0; i < anchors.length; i++) {
         const filter = new Kalman(2, 1);
         filter.F = new Matrix([
-            [1, frameTime],
+            [1, 1],
             [0, 1],
         ]);
 
