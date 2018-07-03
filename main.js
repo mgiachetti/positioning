@@ -47,16 +47,11 @@ function gaussianRand() {
 }
 
 //
-class Kalman {
-    constructor() {
-    }
-}
-
-//
 class Player {
     constructor(x=100, y=100) {
         this.pos = [x, y];
         this.velocity = [600, 600];
+        this.recalculateDistances();
     }
     move(elapsed) {
         this.pos = [this.pos[0] + this.velocity[0] * elapsed, this.pos[1] + this.velocity[1] * elapsed];
@@ -79,10 +74,11 @@ class Player {
             this.pos[1] = 2*fieldheight - this.pos[1];
             this.velocity[1] *= -1
         }
+        this.recalculateDistances();
     }
 
-    distanceToAnchors() {
-        return anchors.map(pos => {
+    recalculateDistances() {
+        this.distanceToAnchors = anchors.map(pos => {
             return dist(this.pos, pos);
         });
     }
@@ -102,6 +98,13 @@ const anchors = [
     [fieldWidth + 100, -100],
     [fieldWidth + 100, fieldheight+100],
     [-100, fieldheight+100],
+];
+
+const anchorColors = [
+    'blue',
+    'green',
+    'purple',
+    'gray',
 ];
 
 const players = [
@@ -219,16 +222,19 @@ function drawField(ctx) {
 }
 
 function drawAnchors(ctx) {
-    ctx.beginPath();
-    ctx.fillStyle = 'blue';
+    
+    
     const anchorRad = 40;
-    anchors.forEach(pos => {
+    anchors.forEach((pos, i) => {
+        ctx.beginPath();
+        ctx.fillStyle = anchorColors[i];
         const [x, y] = pos;
         ctx.moveTo(x + anchorRad, y);
         ctx.arc(x, y, anchorRad, 0, 2*Math.PI);
+        ctx.fill();
     });
     
-    ctx.fill();
+    
 }
 
 function drawPlayers(ctx) {
@@ -245,20 +251,21 @@ function drawPlayers(ctx) {
 }
 
 function drawAnchorsDistance(ctx) {
-    const error = 10;
-    ctx.strokeStyle = 'blue';
-    ctx.lineWidth = 5;
-    ctx.beginPath();
-    players[0].distanceToAnchors().forEach((dist, i) => {
+    const error = 100;
+    // ctx.strokeStyle = 'blue';
+    ctx.lineWidth = 10;
+    // ctx.beginPath();
+    players[0].distanceToAnchors.forEach((dist, i) => {
+        ctx.beginPath();
+        ctx.strokeStyle = anchorColors[i];
         const noise = (2*gaussianRand() - 1) * error;
         const rad = dist + noise;
         const [x, y] = anchors[i];
-        const dang = 0.5 * Math.PI * i;
-        const k = i % 3 == 0 ? 1 : -1;
-        ctx.moveTo(x + rad * k, y);
-        ctx.arc(x, y, rad, dang, dang + k*Math.PI*0.5, k != 1);
+        ctx.moveTo(x + rad, y);
+        ctx.arc(x, y, rad, 0, 2*Math.PI);
+        ctx.stroke();
     });
-    ctx.stroke();
+    // ctx.stroke();
 }
 
 function render() {
@@ -318,15 +325,18 @@ function movePlayers(elapsed) {
 
 function update(elapsed) {
     movePlayers(elapsed);
-    players[0].distanceToAnchors().forEach((dist, i) => {
+    players[0].distanceToAnchors.forEach((dist, i) => {
         debugVars[`Dist anchor ${i}`] = `${dist.toFixed(2)} m`;
     });
 }
 
+const fps = 3;
+const frameTime = 1.0/fps;
+const speed = 0.1
 function loop() {
-    const elapsed = 1/30.0; 
+    const elapsed = frameTime * speed;
     update(elapsed);
     render();
 }
 
-setInterval(loop, 1000.0/30.0);
+setInterval(loop, frameTime*1000);
