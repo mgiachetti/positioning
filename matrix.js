@@ -77,7 +77,7 @@ class Matrix {
     }
 
     transpose() {
-        const res = Matrix.init(this.rows(), this.cols());
+        const res = Matrix.init(this.cols(), this.rows());
         const rows = res.rows();
         const cols = res.cols();
         for (let r = 0; r < rows; r++) {

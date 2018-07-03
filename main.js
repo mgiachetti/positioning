@@ -101,6 +101,8 @@ const anchors = [
     [-100, fieldheight+100],
 ];
 
+const anchorKalmans = [];
+
 const anchorColors = [
     'blue',
     'green',
@@ -367,24 +369,76 @@ function calculatePosition() {
     debugVars['Estimated Acum Error'] = acumError; 
 }
 
-const fps = 3;
+const fps = 30;
 const frameTime = 1.0/fps;
-const speed = 0.1
+const speed = 1;
 function loop() {
-    const elapsed = frameTime * speed;
+    const elapsed = frameTime;
     update(elapsed);
     calculatePosition();
+    calculateErrors();
     render();
+    // requestAnimationFrame()
 }
 
-setInterval(loop, frameTime*1000);
+initFilters();
+
+function calculateErrors() {
+    players[0].distanceToAnchors.forEach((anchorDist, i) => {
+        if (i == 0) {
+            const filter = anchorKalmans[i];
+            filter.predict();
+            filter.measurementUpdate(new Matrix([[anchorDist]]));
+            const filteredDistance = filter.x.values[0][0];
+            const realDistance = dist(anchors[i], players[0].pos);
+            debugVars[`Dist anchor ${i} filtered`] = filteredDistance;
+            debugVars[`Dist anchor ${i} filtered error`] = Math.abs(filteredDistance - realDistance);
+            debugVars[`Dist anchor ${i} error`] = Math.abs(anchorDist - realDistance);
+            if (debugVars[`Dist anchor ${i} error acum`] == undefined) {
+                debugVars[`Dist anchor ${i} filtered error acum`] = 0;
+                debugVars[`Dist anchor ${i} error acum`] = 0;
+            }
+            debugVars[`Dist anchor ${i} filtered error acum`] += debugVars[`Dist anchor ${i} filtered error`] || 0 ;
+            debugVars[`Dist anchor ${i} error acum`] += debugVars[`Dist anchor ${i} error`] || 0;
+            // debugVars[`Dist anchor ${i} filtered error`] = Math.abs(filteredDistance - realDistance);
+        }
+    });
+}
+
+function initFilters() {
+    for (let i = 0; i < anchors.length; i++) {
+        const filter = new Kalman(2, 1);
+        filter.F = new Matrix([
+            [1, frameTime],
+            [0, 1],
+        ]);
+
+        filter.P = new Matrix([
+            [10000, 0.0],
+            [0, 1000],
+        ]);
+
+        filter.R = new Matrix([
+            [standardError],
+        ]);
+
+        filter.Q = new Matrix([
+            [10000, 0.0],
+            [0, 1000],
+        ]);
+        
+        anchorKalmans[i] = filter;
+    }
+}
+
+setInterval(loop, frameTime*1000 / speed);
 
 // estabilization test
-function test(standarError, n) {
+function test(standardError, n) {
     let x = 0, y = 0;
     for (let i = 0; i < n; ++i) {
-        x += (gaussianRand()-0.5)*3*standarError;
-        y += (gaussianRand()-0.5)*3*standarError;
+        x += (gaussianRand()-0.5)*3*standardError;
+        y += (gaussianRand()-0.5)*3*standardError;
     }
     return ((x/n) ** 2 + (y/n)**2) ** 0.5;
 }

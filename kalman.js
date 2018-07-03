@@ -36,7 +36,7 @@ class Kalman {
 
     predict() {
         this.x = this.F.multiply(this.x).add(this.u); // F * x + u
-        this.P = this.F.multiply(this.P).multiply(this.F.transpose()).add(Q); // F * P * Ft + Q
+        this.P = this.F.multiply(this.P).multiply(this.F.transpose()).add(this.Q); // F * P * Ft + Q
         if (isNaN(this.x.values[0][0])) {
             console.log("Naan Predict");
         }
@@ -45,7 +45,7 @@ class Kalman {
     measurementUpdate(z) {
         let Ht = this.H.transpose();
         let y = z.subtract(this.H.multiply(this.x)); // z - (H*x)
-        let S = this.H.multiply(this.P).multiply(Ht).add(R); // H * P * Ht + R
+        let S = this.H.multiply(this.P).multiply(Ht).add(this.R); // H * P * Ht + R
         let K = this.P.multiply(Ht).multiply(S.inverse()); // P * Ht * S.inverse()
 
         this.x = this.x.add(K.multiply(y)); // x + K*y
