@@ -24,7 +24,7 @@ function dist(v1, v2) {
     return Math.sqrt(distSqr(v1,v2));
 }
 
-
+const standardError = 10;
 // goal 7,32 x 2,44 x 0.9 http://www.oficad.com/medidas_y_dimesnsiones/campo%20de%20futbol.gif
 const fieldWidth = 10000;
 const fieldheight = 7000;
@@ -50,7 +50,7 @@ function gaussianRand() {
 class Player {
     constructor(x=100, y=100) {
         this.pos = [x, y];
-        this.velocity = [600, 600];
+        this.velocity = [600, 200];
         this.recalculateDistances();
     }
     move(elapsed) {
@@ -79,7 +79,8 @@ class Player {
 
     recalculateDistances() {
         this.distanceToAnchors = anchors.map(pos => {
-            return dist(this.pos, pos);
+            const noise = (gaussianRand() - 0.5) * 2 * 3 * standardError;
+            return dist(this.pos, pos) + noise;
         });
     }
 }
@@ -240,29 +241,36 @@ function drawAnchors(ctx) {
 function drawPlayers(ctx) {
     ctx.beginPath();
     ctx.fillStyle = 'red';
-    const anchorRad = 40;
+    const playerRad = 40;
     players.forEach(player => {
         const [x, y] = player.pos;
-        ctx.moveTo(x + anchorRad, y);
-        ctx.arc(x, y, anchorRad, 0, 2*Math.PI);
+        ctx.moveTo(x + playerRad, y);
+        ctx.arc(x, y, playerRad, 0, 2*Math.PI);
     });
     
     ctx.fill();
 }
 
+function drawEstimatedPosition(ctx) {
+    ctx.beginPath();
+    ctx.fillStyle = 'blue';
+    const rad = 40;
+    const [x, y] = estimatedPosition;
+    ctx.moveTo(x + rad, y);
+    ctx.arc(x, y, rad, 0, 2*Math.PI);
+    ctx.fill();
+}
+
 function drawAnchorsDistance(ctx) {
-    const error = 100;
     // ctx.strokeStyle = 'blue';
     ctx.lineWidth = 10;
     // ctx.beginPath();
     players[0].distanceToAnchors.forEach((dist, i) => {
         ctx.beginPath();
         ctx.strokeStyle = anchorColors[i];
-        const noise = (2*gaussianRand() - 1) * error;
-        const rad = dist + noise;
         const [x, y] = anchors[i];
-        ctx.moveTo(x + rad, y);
-        ctx.arc(x, y, rad, 0, 2*Math.PI);
+        ctx.moveTo(x + dist, y);
+        ctx.arc(x, y, dist, 0, 2*Math.PI);
         ctx.stroke();
     });
     // ctx.stroke();
@@ -315,6 +323,7 @@ function render() {
     drawPlayers(ctx);
 
     drawAnchorsDistance(ctx);
+    drawEstimatedPosition(ctx);
 
     document.getElementById('debugData').textContent = Object.keys(debugVars).map(key => `${key}: ${debugVars[key]}`).join('\n');
 }
@@ -330,13 +339,61 @@ function update(elapsed) {
     });
 }
 
+let estimatedPosition = [0,0];
+let estimatedError = 0;
+let acumError = 0;
+function calculatePosition() {
+    const [d0, d1, , d3] = players[0].distanceToAnchors;
+    const h = dist(anchors[0], anchors[3]);
+
+    let y = (d0*d0 - d3*d3 + h*h) / (2*h);
+    let x = Math.sqrt(d0*d0 - y*y);
+
+    y += anchors[0][1];
+    x += anchors[0][0];
+
+    if (Math.abs(dist([x,y], anchors[1]) - d1) > Math.abs(dist([-x,y], anchors[1]) - d1)) {
+        // x has two posible solutions if distance to the third anchor do not match mirror it
+        x = -x;
+    }
+    estimatedPosition[0] = x;
+    estimatedPosition[1] = y;
+    estimatedError = dist(estimatedPosition, players[0].pos);
+    if (!isNaN(estimatedError)) {
+        acumError += estimatedError;
+    }
+    debugVars['Estimated Position'] = estimatedPosition;
+    debugVars['Estimated Error'] = estimatedError;
+    debugVars['Estimated Acum Error'] = acumError; 
+}
+
 const fps = 3;
 const frameTime = 1.0/fps;
 const speed = 0.1
 function loop() {
     const elapsed = frameTime * speed;
     update(elapsed);
+    calculatePosition();
     render();
 }
 
 setInterval(loop, frameTime*1000);
+
+// estabilization test
+function test(standarError, n) {
+    let x = 0, y = 0;
+    for (let i = 0; i < n; ++i) {
+        x += (gaussianRand()-0.5)*3*standarError;
+        y += (gaussianRand()-0.5)*3*standarError;
+    }
+    return ((x/n) ** 2 + (y/n)**2) ** 0.5;
+}
+
+function errorAvg(error, n) {
+    const samples = 30;
+    let sum = 0;
+    for(let i = 0; i < samples; i++) {
+        sum += test(error, n);
+    }
+    return sum / samples;
+}
