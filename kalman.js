@@ -43,6 +43,8 @@ class Kalman {
     }
 
     measurementUpdate(z) {
+        const currentP = this.P;
+        const currentX = this.x;
         let Ht = this.H.transpose();
         let y = z.subtract(this.H.multiply(this.x)); // z - (H*x)
         let S = this.H.multiply(this.P).multiply(Ht).add(this.R); // H * P * Ht + R
@@ -52,7 +54,9 @@ class Kalman {
         this.P = (this.I.subtract(K.multiply(this.H))).multiply(this.P); // (I - K*H)*P
 
         if (isNaN(this.x.values[0][0])) {
-            console.log(`Naan Measurement z: ${this.z.values} s: ${this.S.values} si: ${this.S.inverse().values} K: ${this.K.values} y: ${this.y.values} h: ${this.H.values}`);
+            console.log(`Naan Measurement z: ${z.values} s: ${S.values} si: ${S.inverse().values} K: ${K.values} y: ${y.values} h: ${this.H.values}`);
+            this.P = currentP;
+            this.x = currentX;
         }
     }
 }

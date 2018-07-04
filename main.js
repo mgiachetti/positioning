@@ -381,8 +381,8 @@ function loop() {
     // requestAnimationFrame()
 }
 
+const positionFilter = new Kalman(4, 2);
 initFilters();
-
 function calculateErrors() {
     players[0].distanceToAnchors.forEach((anchorDist, i) => {
         if (i == 0) {
@@ -404,9 +404,45 @@ function calculateErrors() {
             // debugVars[`Dist anchor ${i} filtered error`] = Math.abs(filteredDistance - realDistance);
         }
     });
+
+    positionFilter.predict();
+    positionFilter.measurementUpdate(new Matrix([[estimatedPosition[0]],[estimatedPosition[1]]]));
+    const filteredPosition = [positionFilter.x.values[0][0], positionFilter.x.values[1][0]];
+    if (debugVars[`Estimated position filtered error acum`] == undefined) {
+        debugVars[`Estimated position filtered error acum`] = 0;
+    }
+    debugVars[`Estimated position filtered error`] = dist(filteredPosition, players[0].pos);;
+    debugVars[`Estimated position filtered error acum`] += dist(filteredPosition, players[0].pos);
+    debugVars[`Estimated position error reduced`] =  `${100*(1 - debugVars[`Estimated position filtered error acum`] / acumError) | 0}%`;
 }
 
 function initFilters() {
+    positionFilter.F = new Matrix([
+        [1, 0, 1, 0],
+        [0, 1, 0, 1],
+        [0, 0, 1, 0],
+        [0, 0, 0, 1],
+    ]);
+
+    positionFilter.P = new Matrix([
+        [10000, 0.0, 0.0, 0.0],
+        [0.0, 10000, 0.0, 0.0],
+        [0.0, 0.0, 1000.0, 0.0],
+        [0.0, 0.0, 0.0, 1000.0],
+    ]);
+
+    positionFilter.R = new Matrix([
+        [standardError, 0],
+        [0, standardError],
+    ]);
+
+    positionFilter.Q = new Matrix([
+        [1, 0.0, 0.0, 0.0],
+        [0.0, 1, 0.0, 0.0],
+        [0.0, 0.0, 1, 0.0],
+        [0.0, 0.0, 0.0, 1],
+    ]);
+    
     for (let i = 0; i < anchors.length; i++) {
         const filter = new Kalman(2, 1);
         filter.F = new Matrix([
