@@ -488,3 +488,107 @@ function errorAvg(error, n) {
     }
     return sum / samples;
 }
+
+
+function iterateCircle(c, r, fn) {
+    const [cx,  cy] = c;
+    const dang = 0.1 * (r/90.0)*Math.PI / 180.0;
+    for (let i = 0; i < 2*Math.PI; i += dang) {
+        const x = Math.cos(i) * r + cx;
+        const y = Math.sin(i) * r + cy;
+        fn([x, y]);
+    }
+}
+
+
+function renderTest() {
+    const canvas = document.getElementById('canvas');
+    const width = canvas.clientWidth;
+    const height = canvas.clientHeight;
+    const ctx = canvas.getContext('2d');
+
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    
+    // clear
+    ctx.fillStyle = `#ffffff`;
+    ctx.clearRect(0, 0, width, height);
+    ctx.fillRect(0, 0, width, height);
+
+    ctx.setTransform(1, 0, 0, 1, width/2, height/2);
+
+    const ps = [
+        [50, 75],
+        [150, 30],
+    ];
+
+    const anchors = [
+        [0, 0],
+        [200, 0],
+    ];
+
+    const distancePointsToAnchors = ps.map(p => anchors.map(ap => dist(p, ap)));
+
+    function drawCircle(p, color, r) {
+        ctx.strokeStyle = color;
+        ctx.beginPath();
+        ctx.moveTo(p[0] + r, p[1]);
+        ctx.arc(p[0], p[1], r, 0, 2*Math.PI);
+        ctx.stroke();
+    }
+
+    function drawPoint(p, color) {
+        drawCircle(p, color, 2);
+    }
+    
+    anchors.forEach(p => drawPoint(p, 'blue'));
+    ps.forEach(p => drawPoint(p, 'green'));
+
+    iterateCircle(anchors[0], distancePointsToAnchors[0][0], (P) => {
+        if (
+            P[0] < 0.0 || P[1] < 0.0
+        ) {
+            return;
+        }
+        let dibuja = false;
+        iterateCircle(P, distancePointsToAnchors[0][1], (B) => {
+            if (B[0] < 0 || Math.abs(B[1]) > 1) {
+                return;
+            }
+            let dibujaAnchor = false;
+            iterateCircle(B, distancePointsToAnchors[1][1], (Q) => {
+                if (
+                    Q[0] < 0 || Q[1] < 0 ||
+                    Q[0] > B[0] ||
+                    Math.abs(dist(Q, anchors[0]) - distancePointsToAnchors[1][0]) > 1
+                ) {
+                    return;
+                }
+                
+                drawPoint(Q, 'red');
+                
+                dibujaAnchor = true;
+            })
+            if (dibujaAnchor) {
+                drawPoint(B, 'gray');
+                dibuja = true;
+            }
+        })
+
+        if (dibuja) {
+            drawPoint(P, 'red');
+        }
+    });
+
+    anchors.forEach(p => drawPoint(p, 'purple'));
+    ps.forEach(p => drawPoint(p, 'green'));
+
+
+    // ctx.strokeStyle = '#000000';
+    // ctx.moveTo(10, 10);
+    // ctx.lineTo(10, height - 10);
+    // ctx.lineTo(width - 10, height - 10);
+    
+
+}
+
+// renderTest();
