@@ -1,0 +1,121 @@
+\documentclass[11pt]{article}
+
+    \usepackage{tikz,pgfplots}
+    \usepackage{sectsty}
+    \usepackage{graphicx}
+    \usepackage{multicol}
+    
+    % Margins
+    \topmargin=-0.45in
+    \evensidemargin=0in
+    \oddsidemargin=0in
+    \textwidth=6.5in
+    \textheight=9.0in
+    \headsep=0.25in
+    
+    \title{ Calibrar 4 Anclas}
+    \date{}
+    \begin{document}
+    \maketitle
+    \noindent
+    Dado 4 puntos (P,Q,R,S), encontrar las Anclas (A,B,C,D) solo conociendo la distancia entre \\
+    los puntos y todas las anclas.\\
+    
+    \begin{tikzpicture}[>=latex]
+    \begin{axis}[
+      axis x line=center,
+      axis y line=center,
+      xticklabels={1}
+      xtick={0,...,5},
+      ytick={0,...,5},
+      xmin=-0.1,
+      ymin=-0.1,
+      xmax=1,
+      ymax=1,
+      xlabel={$x$},
+      ylabel={$y$},
+      xlabel style={below right},
+      ylabel style={above left}]
+      \addplot [mark=*] coordinates{(0.0,0.0)} node[above=0.2cm,right]{A};
+      \addplot [mark=*] coordinates{(0,0.8)} node[right] {B} ;
+      \addplot [mark=*] coordinates{(0.8,0.1)} node[above]{C};
+      \addplot [mark=*] coordinates{(0.7,0.9)} node[above]{D};
+      \addplot [mark=*] coordinates{(0.1,0.1)} node[above]{P};
+      \addplot [mark=*] coordinates{(0.6,0.15)} node[above]{Q};
+      \addplot [mark=*] coordinates{(0.6,0.75)} node[above]{R};
+      \addplot [mark=*] coordinates{(0.15,0.7)} node[above]{S};
+    % \addplot [mark=none,domain=-4:4] {x};
+    \end{axis}
+    \end{tikzpicture}
+    \\
+    \\
+    \noindent
+    Datos:
+    \begin{multicols}{2}
+    \noindent
+    $||\overline{AP}||$ = a \\
+    $||\overline{AQ}||$ = c \\
+    $||\overline{AR}||$ = d \\
+    $||\overline{AS}||$ = e \\
+    $||\overline{BP}||$ = f \\
+    $||\overline{BQ}||$ = g \\
+    $||\overline{BR}||$ = h \\
+    $||\overline{BS}||$ = i \\
+    \columnbreak
+    
+    \noindent
+    $||\overline{CP}||$ = j \\
+    $||\overline{CQ}||$ = k \\
+    $||\overline{CR}||$ = l \\
+    $||\overline{CS}||$ = m \\
+    $||\overline{DP}||$ = n \\
+    $||\overline{DQ}||$ = o \\
+    $||\overline{DR}||$ = p \\
+    $||\overline{DS}||$ = q \\
+    \end{multicols}
+    
+    \noindent
+    Incognitas:
+    \begin{multicols}{2}
+    \noindent
+    $A = (0, 0, 0)$\\
+    $B = (0, B_y, 0)$\\
+    $C = (C_x, C_y, 0)$\\
+    $D = (D_x, D_y, 0)$\\
+    \columnbreak
+    
+    \noindent
+    $P = (P_x, P_y, z)$\\
+    $Q = (Q_x, Q_y, z)$\\
+    $R = (R_x, R_y, z)$\\
+    $S = (S_x, S_y, z)$\\
+    \end{multicols}
+    
+    \pagebreak
+    \noindent
+    Ecuaciones:
+    \begin{multicols}{2}
+    \noindent
+    $a = \sqrt{P_x^2 + P_y^2 + z^2}$ \\
+    $b = \sqrt{Q_x^2 + Q_y^2 + z^2}$ \\
+    $c = \sqrt{R_x^2 + R_y^2 + z^2}$ \\
+    $d = \sqrt{S_x^2 + S_y^2 + z^2}$ \\
+    $e = \sqrt{P_x^2 + (P_y - B_y)^2 + z^2}$ \\
+    $f = \sqrt{Q_x^2 + (Q_y - B_y)^2 + z^2}$ \\
+    $g = \sqrt{R_x^2 + (R_y - B_y)^2 + z^2}$ \\
+    $h = \sqrt{S_x^2 + (S_y - B_y)^2 + z^2}$ \\
+    \columnbreak
+    
+    \noindent
+    $i = \sqrt{(P_x - C_x)^2 + (P_y - C_y)^2 + z^2}$ \\
+    $j = \sqrt{(Q_x - C_x)^2 + (Q_y - C_y)^2 + z^2}$ \\
+    $k = \sqrt{(R_x - C_x)^2 + (R_y - C_y)^2 + z^2}$ \\
+    $l = \sqrt{(S_x - C_x)^2 + (S_y - C_y)^2 + z^2}$ \\
+    $m = \sqrt{(P_x - D_x)^2 + (P_y - D_y)^2 + z^2}$ \\
+    $n = \sqrt{(Q_x - D_x)^2 + (Q_y - D_y)^2 + z^2}$ \\
+    $o = \sqrt{(R_x - D_x)^2 + (R_y - D_y)^2 + z^2}$ \\
+    $p = \sqrt{(S_x - D_x)^2 + (S_y - D_y)^2 + z^2}$ \\
+    \end{multicols}
+    
+    
+    \end{document}

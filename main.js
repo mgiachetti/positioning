@@ -50,7 +50,8 @@ function gaussianRand() {
 class Player {
     constructor(x=100, y=100) {
         this.pos = [x, y];
-        this.velocity = [600, 200];
+        // this.velocity = [600, 200];
+        this.velocity = [0,0];
         this.recalculateDistances();
     }
     move(elapsed) {
@@ -176,10 +177,6 @@ function drawField(ctx) {
     // left
     ctx.moveTo(largeAreaWidth, height/2 + dy);
     ctx.arc(penaltyWidth, height/2, centerRadius, -ang, ang);
-    // right
-    ctx.moveTo(width - largeAreaWidth, height/2 + dy);
-    ctx.arc(width - penaltyWidth, height/2, centerRadius, Math.PI - ang, Math.PI + ang);
-
     // right
     ctx.moveTo(width - largeAreaWidth, height/2 + dy);
     ctx.arc(width - penaltyWidth, height/2, centerRadius, Math.PI - ang, Math.PI + ang);
@@ -387,7 +384,7 @@ function calculateErrors() {
     players[0].distanceToAnchors.forEach((anchorDist, i) => {
         if (i == 0) {
             const filter = anchorKalmans[i];
-            filter.predict();
+            // filter.predict();
             filter.measurementUpdate(new Matrix([[anchorDist]]));
             const filteredDistance = filter.x.values[0][0];
             const realDistance = dist(anchors[i], players[0].pos);
@@ -447,7 +444,7 @@ function initFilters() {
         const filter = new Kalman(2, 1);
         filter.F = new Matrix([
             [1, 1],
-            [0, 1],
+            [0, 0],
         ]);
 
         filter.P = new Matrix([
@@ -460,8 +457,8 @@ function initFilters() {
         ]);
 
         filter.Q = new Matrix([
-            [1, 0.0],
-            [0, 1],
+            [0.000000001, 0.0],
+            [0, 0.0],
         ]);
         
         anchorKalmans[i] = filter;
